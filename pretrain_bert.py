@@ -95,6 +95,7 @@ if __name__ == "__main__":
     vocab_size = tokenizer.vocab_size
  
     config = {
+            "name": 'baseline-cpu',
             "vocab_size": vocab_size,
             "seq_len": MAX_LEN,
             "num_layers": 8,
@@ -105,7 +106,7 @@ if __name__ == "__main__":
             "batch_size": 32,
             "random_seed": 1234,
             "dropout": 0.1,
-            "epochs": 20
+            "epochs": 2
         }
 
     torch.manual_seed(config['random_seed'])   
@@ -114,8 +115,8 @@ if __name__ == "__main__":
         # set the wandb project where this run will be logged
         project="bert-demo",
         # track hyperparameters and run metadata
-        config = config
-       
+        config = config, 
+        name = config['name']
     )
 
     train_data = BERTDataset(pairs, seq_len=config['seq_len'], tokenizer=tokenizer)

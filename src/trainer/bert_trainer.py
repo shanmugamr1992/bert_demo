@@ -26,6 +26,7 @@ class BERTTrainer:
         self.model = model
         self.train_data = train_dataloader
         self.test_data = test_dataloader
+        self.save_dir = save_dir
 
         # Setting the Adam optimizer with hyper-param
         self.optim = Adam(self.model.parameters(), lr=lr, betas=betas, weight_decay=weight_decay)
@@ -97,5 +98,5 @@ class BERTTrainer:
             total_acc={total_correct * 100.0 / total_element}"
         ) 
 
-        Path(save_dir).mkdir(parents=True, exist_ok=True)
-        torch.save(self.model.state_dict(), save_dir)
+        Path(self.save_dir).mkdir(parents=True, exist_ok=True)
+        torch.save(self.model.state_dict(), self.save_dir)
