@@ -1,6 +1,8 @@
 import os 
 import tqdm
 import sys
+import wandb
+import torch
 
 from pathlib import Path
 sys.path.append("./src")
@@ -11,8 +13,6 @@ from torch.utils.data import DataLoader
 from trainer.bert_trainer import BERTTrainer
 from transformers import BertTokenizer
 from tokenizers import BertWordPieceTokenizer
-
-
 
 MAX_LEN = 64
 
@@ -92,19 +92,56 @@ if __name__ == "__main__":
     pairs = get_data_pairs()
 
     tokenizer = get_tokenizer()
+    vocab_size = tokenizer.vocab_size
+ 
+    config = {
+            "vocab_size": vocab_size,
+            "seq_len": MAX_LEN,
+            "num_layers": 8,
+            "embedding_dim": 768,
+            "num_attention_heads": 8,
+            "num_token_types": 3,
+            "expansion_factor": 4,
+            "batch_size": 32,
+            "random_seed": 1234,
+            "dropout": 0.1,
+            "epochs": 20
+        }
 
-    train_data = BERTDataset(pairs, seq_len=MAX_LEN, tokenizer=tokenizer)
+    torch.manual_seed(config['random_seed'])   
 
-    train_loader = DataLoader(train_data, batch_size=32, shuffle=True, pin_memory=True)
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="bert-demo",
+        # track hyperparameters and run metadata
+        config = config
+       
+    )
 
-    bert_model =  BertModel(tokenizer.vocab_size)
+    train_data = BERTDataset(pairs, seq_len=config['seq_len'], tokenizer=tokenizer)
+
+    train_loader = DataLoader(train_data, batch_size=config['batch_size'], shuffle=True, pin_memory=True)
+
+    bert_model =  BertModel(
+        vocab_size = vocab_size, 
+        seq_len = config['seq_len'], 
+        num_layers = config['num_layers'], 
+        embedding_dim = config['embedding_dim'], 
+        num_attention_heads = config['num_attention_heads'],  
+        num_token_types = config['num_token_types'], 
+        expansion_factor = config['expansion_factor']
+        )
 
     bert_trainer = BERTTrainer(bert_model, train_loader, device='cpu')
-    epochs = 4
+
+    epochs = config['epochs']
 
     for epoch in range(epochs):
         bert_trainer.train(epoch)
 
+    wandb.finish()
+
 # docker run -it -v /home/shanmugamr/check_bert/data:/workspace/data -v /home/shanmugamr/bert_demo:/workspace/bert_demo nvcr.io/nvidia/pytorch:23.08-py3  bash
-# pip install tokenizers transformers
+# pip install -r requirements.txt
+# wandb login d603b3b122f551501c387f043e2da394d46022c9
 # python3 pretrain_bert.py

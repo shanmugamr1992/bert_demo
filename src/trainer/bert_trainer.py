@@ -3,6 +3,8 @@ import torch
 from bert_model.bert_model import BertModel
 from optimizer.custom_adam_optimizer import ScheduledOptim 
 import tqdm 
+import wandb
+from pathlib import Path
 
 class BERTTrainer:
     def __init__(
@@ -16,7 +18,8 @@ class BERTTrainer:
         warmup_steps=10000,
         log_freq=10,
         device='cuda',
-        embedding_dim = 768
+        embedding_dim = 768,
+        save_dir = "/workspace/bert_demo/ckpt"
         ):
 
         self.device = device
@@ -84,6 +87,8 @@ class BERTTrainer:
                 "loss": loss.item()
             }
 
+            wandb.log(post_fix)
+            
             if i % self.log_freq == 0:
                 data_iter.write(str(post_fix))
                 
@@ -91,3 +96,6 @@ class BERTTrainer:
             avg_loss={avg_loss / len(data_iter)}, \
             total_acc={total_correct * 100.0 / total_element}"
         ) 
+
+        Path(save_dir).mkdir(parents=True, exist_ok=True)
+        torch.save(self.model.state_dict(), save_dir)

@@ -3,7 +3,7 @@ import math
 import torch 
 
 class PositionalEmbeddings(nn.Module):
-    def __init__(self, seq_len = 64, embedding_dim = 768):
+    def __init__(self, seq_len, embedding_dim):
         super().__init__()
         self.seq_len = seq_len
         positional_embedding = torch.zeros((seq_len, embedding_dim))
