@@ -3,10 +3,10 @@ import math
 import torch 
 
 class PositionalEmbeddings(nn.Module):
-    def __init__(self, seq_len, embedding_dim):
+    def __init__(self, seq_len, embedding_dim, device='cpu'):
         super().__init__()
         self.seq_len = seq_len
-        positional_embedding = torch.zeros((seq_len, embedding_dim))
+        positional_embedding = torch.zeros((seq_len, embedding_dim)).to(device)
         positional_embedding.require_grad = False # Set this to false since these are not learnable
         
         for pos in range(seq_len):

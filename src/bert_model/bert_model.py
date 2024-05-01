@@ -5,9 +5,9 @@ from bert_model.output_tasks.masked_language_model import MaskedLanguageModel
 from bert_model.output_tasks.next_sentance_prediction import NextSentancePrediction 
 
 class BertModel(nn.Module):
-    def __init__(self, vocab_size, seq_len, num_layers, embedding_dim, num_attention_heads ,num_token_types = 3, expansion_factor = 4):
+    def __init__(self, vocab_size, seq_len, num_layers, embedding_dim, num_attention_heads ,num_token_types = 3, expansion_factor = 4, device='cpu'):
         super().__init__()
-        self.encoder = Encoder(vocab_size, seq_len, num_token_types, num_layers, embedding_dim, num_attention_heads, expansion_factor)
+        self.encoder = Encoder(vocab_size, seq_len, num_token_types, num_layers, embedding_dim, num_attention_heads, expansion_factor, device=device)
         self.masked_language_model = MaskedLanguageModel(vocab_size, embedding_dim) 
         self.next_sentance_prediction = NextSentancePrediction(embedding_dim)
 

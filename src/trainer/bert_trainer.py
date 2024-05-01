@@ -5,6 +5,7 @@ from optimizer.custom_adam_optimizer import ScheduledOptim
 import tqdm 
 import wandb
 from pathlib import Path
+import time 
 
 class BERTTrainer:
     def __init__(
@@ -17,13 +18,14 @@ class BERTTrainer:
         betas=(0.9, 0.999),
         warmup_steps=10000,
         log_freq=10,
-        device='cuda',
+        device='cpu',
         embedding_dim = 768,
         save_dir = "/workspace/bert_demo/ckpt"
         ):
 
         self.device = device
         self.model = model
+        self.model.to(device)
         self.train_data = train_dataloader
         self.test_data = test_dataloader
         self.save_dir = save_dir
@@ -65,15 +67,16 @@ class BERTTrainer:
 
             # 0. batch_data will be sent into the device(GPU or cpu)
             data = {key: value.to(self.device) for key, value in data.items()}
-
+            start = time.time()
             nsp_logits, mlm_logits, loss = self.model(data['bert_input'], data['segment_label'], data['bert_label'].clone(), data['is_next'])
-
+            
             # 3. backward and optimization only in train
             if train:
                 self.optim_schedule.zero_grad()
                 loss.backward()
                 self.optim_schedule.step_and_update_lr()
 
+            end = time.time()
             # next sentence prediction accuracy
             correct = nsp_logits.argmax(dim=-1).eq(data["is_next"]).sum().item()
             avg_loss += loss.item()
@@ -81,11 +84,10 @@ class BERTTrainer:
             total_element += data["is_next"].nelement()
 
             post_fix = {
-                "epoch": epoch,
-                "iter": i,
                 "avg_loss": avg_loss / (i + 1),
                 "avg_acc": total_correct / total_element * 100,
-                "loss": loss.item()
+                "loss": loss.item(),
+                "time_per_step": round(end - start, 3)
             }
 
             wandb.log(post_fix)
@@ -99,4 +101,4 @@ class BERTTrainer:
         ) 
 
         Path(self.save_dir).mkdir(parents=True, exist_ok=True)
-        torch.save(self.model.state_dict(), self.save_dir)
+        torch.save(self.model.state_dict(), f'{self.save_dir}/bert.pt')

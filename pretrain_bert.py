@@ -95,7 +95,7 @@ if __name__ == "__main__":
     vocab_size = tokenizer.vocab_size
  
     config = {
-            "name": 'baseline-cpu',
+            "name": 'simple-1gpu',
             "vocab_size": vocab_size,
             "seq_len": MAX_LEN,
             "num_layers": 8,
@@ -119,6 +119,8 @@ if __name__ == "__main__":
         name = config['name']
     )
 
+    device = torch.cuda.current_device()
+
     train_data = BERTDataset(pairs, seq_len=config['seq_len'], tokenizer=tokenizer)
 
     train_loader = DataLoader(train_data, batch_size=config['batch_size'], shuffle=True, pin_memory=True)
@@ -130,10 +132,11 @@ if __name__ == "__main__":
         embedding_dim = config['embedding_dim'], 
         num_attention_heads = config['num_attention_heads'],  
         num_token_types = config['num_token_types'], 
-        expansion_factor = config['expansion_factor']
+        expansion_factor = config['expansion_factor'],
+        device=device
         )
 
-    bert_trainer = BERTTrainer(bert_model, train_loader, device='cpu')
+    bert_trainer = BERTTrainer(bert_model, train_loader, device=device)
 
     epochs = config['epochs']
 

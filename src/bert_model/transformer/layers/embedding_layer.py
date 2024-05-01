@@ -7,9 +7,9 @@ from ..embeddings.word_embeddings import WordEmbeddings
 
 class BertEmbeddingLayer(nn.Module):
     
-    def __init__(self, vocab_size, seq_len, embedding_dim, num_token_types, dropout=0.1):
+    def __init__(self, vocab_size, seq_len, embedding_dim, num_token_types, dropout=0.1, device='cpu'):
         super().__init__()
-        self.positional_embeddings = PositionalEmbeddings(seq_len, embedding_dim)
+        self.positional_embeddings = PositionalEmbeddings(seq_len, embedding_dim, device=device)
         self.token_type_embeddings = TokenTypelEmbeddings(num_token_types, embedding_dim)
         self.word_embeddings = WordEmbeddings(vocab_size, embedding_dim)
         self.dropout = torch.nn.Dropout(dropout)
